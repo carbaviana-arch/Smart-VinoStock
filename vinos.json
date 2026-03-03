@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "nombre": "Eminia",
+    "do": "Rueda",
+    "uva": "100% Verdejo",
+    "stock": 10,
+    "precio": 15.50
+  },
+  {
+    "id": 2,
+    "nombre": "El Perro Verde",
+    "do": "Rueda",
+    "uva": "100% Verdejo",
+    "stock": 12,
+    "precio": 18.00
+  },
+  {
+    "id": 3,
+    "nombre": "Pazo Baión",
+    "do": "Rías Baixas",
+    "uva": "100% Albariño",
+    "stock": 3,
+    "precio": 24.50
+  },
+  {
+    "id": 4,
+    "nombre": "A Coroa",
+    "do": "Valdeorras",
+    "uva": "100% Godello",
+    "stock": 8,
+    "precio": 19.00
+  },
+  {
+    "id": 5,
+    "nombre": "Luis Cañas Crianza",
+    "do": "Rioja",
+    "uva": "Tempranillo",
+    "stock": 15,
+    "precio": 21.00
+  },
+  {
+    "id": 6,
+    "nombre": "Pago de Carraovejas",
+    "do": "Ribera del Duero",
+    "uva": "Tinto Fino",
+    "stock": 4,
+    "precio": 45.00
+  }
+]
