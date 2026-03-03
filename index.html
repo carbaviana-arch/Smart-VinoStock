@@ -1,110 +1,119 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Jornada App</title>
-  <link rel="stylesheet" href="style.css?v=1.7">
-  <link rel="manifest" href="manifest.json?v=1.7">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart VinoStock</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .card-low-stock { border-left: 6px solid #ef4444; }
+        .card-ok-stock { border-left: 6px solid #22c55e; }
+    </style>
 </head>
-<body>
-  <header>
-    <div class="logo">
-      <i class="fas fa-stopwatch-20"></i>
-      <h1>Jornada</h1>
-    </div>
-    <label class="switch">
-      <input type="checkbox" id="darkToggle">
-      <span class="slider"></span>
-    </label>
-  </header>
+<body class="bg-slate-50 min-h-screen pb-20">
 
-  <main>
-    <section id="view-home" class="view">
-      <div class="card">
-        <h2>Nuevo Registro</h2>
-        <form id="registro-form">
-          <label>Empleado:
-            <select id="empleado" required>
-              </select>
-          </label>
-          <label>Fecha: <input type="date" id="fecha" required></label>
-          <div class="grid-inputs">
-            <label>Entrada: <input type="time" id="entrada" required></label>
-            <label>Salida: <input type="time" id="salida" required></label>
-          </div>
-          <button type="submit" class="btn-primary">Guardar Jornada</button>
-        </form>
-      </div>
+    <header class="bg-red-900 text-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold flex items-center gap-2">
+                <i class="fas fa-wine-bottle"></i> Smart VinoStock
+            </h1>
+            <div id="status" class="text-xs bg-red-800 px-2 py-1 rounded-full uppercase tracking-wider">Online</div>
+        </div>
+    </header>
 
-      <div class="card">
-        <h2>Historial Reciente</h2>
-        <ul id="historial"></ul>
-      </div>
+    <section class="p-4 sticky top-[60px] bg-slate-50 z-40">
+        <div class="relative max-w-2xl mx-auto">
+            <i class="fas fa-search absolute left-4 top-4 text-gray-400"></i>
+            <input type="text" id="searchInput" placeholder="Buscar vino, uva o D.O..." 
+                   class="w-full pl-12 pr-4 py-3 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-red-600 outline-none text-lg">
+        </div>
     </section>
 
-    <section id="view-stats" class="view hidden">
-      <div class="card">
-        <h2>Resumen por Empleado</h2>
-        <label>Filtrar por persona:
-          <select id="filtro-empleado">
-            </select>
-        </label>
-      </div>
-
-      <div class="grid-resumen">
-        <div class="card stat-card">
-          <small>Total Horas</small>
-          <h3 id="stat-total">00:00</h3>
+    <main class="container mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="wineGrid">
+        <div class="col-span-full text-center py-20 text-gray-400">
+            <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+            <p>Cargando bodega...</p>
         </div>
-        <div class="card stat-card">
-          <small>Días Trabajados</small>
-          <h3 id="stat-dias">0</h3>
-        </div>
-      </div>
+    </main>
 
-      <div class="card">
-        <button id="exportPdfBtn" class="btn-secondary">
-          <i class="fas fa-file-pdf"></i> Generar Reporte PDF
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-3 flex justify-around items-center z-50">
+        <button onclick="location.reload()" class="flex flex-col items-center text-red-800">
+            <i class="fas fa-sync-alt text-xl"></i>
+            <span class="text-[10px] mt-1 font-bold">Actualizar</span>
         </button>
-      </div>
-    </section>
+        <button class="bg-red-800 text-white w-12 h-12 rounded-full -mt-10 shadow-lg border-4 border-slate-50 flex items-center justify-center">
+            <i class="fas fa-plus"></i>
+        </button>
+        <button onclick="alert('Función de estadísticas en desarrollo')" class="flex flex-col items-center text-gray-400">
+            <i class="fas fa-chart-line text-xl"></i>
+            <span class="text-[10px] mt-1 font-bold">Resumen</span>
+        </button>
+    </nav>
 
-    <section id="view-settings" class="view hidden">
-      <div class="card">
-        <h2><i class="fas fa-users-cog"></i> Gestionar Equipo</h2>
-        <form id="add-employee-form">
-          <label>Nuevo Empleado:
-            <input type="text" id="new-employee-name" placeholder="Nombre del empleado" required>
-          </label>
-          <button type="submit" class="btn-primary">Añadir al Equipo</button>
-        </form>
-      </div>
+    <script>
+        let inventory = [];
 
-      <div class="card">
-        <h3>Lista de Empleados</h3>
-        <ul id="employee-list-admin"></ul>
-      </div>
-    </section>
-  </main>
+        async function init() {
+            try {
+                const response = await fetch('vinos.json');
+                inventory = await response.json();
+                render(inventory);
+            } catch (e) {
+                document.getElementById('wineGrid').innerHTML = `
+                    <div class="col-span-full text-center py-10 text-red-600">
+                        <i class="fas fa-exclamation-triangle text-3xl"></i>
+                        <p class="mt-2 text-sm font-bold">Error al leer vinos.json</p>
+                    </div>`;
+            }
+        }
 
-  <nav class="dock">
-    <button class="dock-item active" data-view="view-home">
-      <i class="fas fa-calendar-plus"></i>
-      <span>Registro</span>
-    </button>
-    <button class="dock-item" data-view="view-stats">
-      <i class="fas fa-chart-pie"></i>
-      <span>Resumen</span>
-    </button>
-    <button class="dock-item" data-view="view-settings">
-      <i class="fas fa-user-cog"></i>
-      <span>Equipo</span>
-    </button>
-  </nav>
+        function render(data) {
+            const grid = document.getElementById('wineGrid');
+            if (data.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center py-10">No se encontraron vinos.</p>`;
+                return;
+            }
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="script.js?v=1.7"></script>
+            grid.innerHTML = data.map(wine => `
+                <div class="bg-white rounded-2xl shadow-sm p-4 transition active:scale-95 ${wine.stock < 5 ? 'card-low-stock' : 'card-ok-stock'}">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-lg leading-tight">${wine.nombre}</h3>
+                            <p class="text-xs text-gray-500 uppercase font-semibold">${wine.do} • ${wine.uva}</p>
+                        </div>
+                        <span class="text-sm font-bold text-red-900">${wine.precio.toFixed(2)}€</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between mt-6">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-gray-400 uppercase font-bold">Stock Actual</span>
+                            <span class="text-3xl font-black ${wine.stock < 5 ? 'text-red-600' : 'text-slate-700'}">
+                                ${wine.stock} <span class="text-xs font-normal">uds</span>
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+                            <button class="w-10 h-10 rounded-lg bg-white shadow-sm flex items-center justify-center active:bg-gray-200">-</button>
+                            <button class="w-10 h-10 rounded-lg bg-red-800 text-white shadow-sm flex items-center justify-center active:bg-red-900">+</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Buscador en tiempo real
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = inventory.filter(w => 
+                w.nombre.toLowerCase().includes(term) || 
+                w.do.toLowerCase().includes(term) ||
+                w.uva.toLowerCase().includes(term)
+            );
+            render(filtered);
+        });
+
+        init();
+    </script>
 </body>
 </html>
